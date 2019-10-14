@@ -5,6 +5,7 @@ public class PlayerController : MonoBehaviour {
     public float MovementSpeed;
     public float JumpForce;
     public AudioSource CoinSound;
+    public float CameraDistanceZ = 6;
 
     private Rigidbody _rigidbody;
     private Collider  _collider;
@@ -18,10 +19,14 @@ public class PlayerController : MonoBehaviour {
         _collider = GetComponent<Collider>();
 
         playerSize = _collider.bounds.size;
+
+        CameraFollowPlayer();
     }
     void FixedUpdate () {
         WalkHandler();
         JumpHandler();
+        LatitudeHandler();
+        CameraFollowPlayer();
     }
 
     private void WalkHandler() {
@@ -33,6 +38,13 @@ public class PlayerController : MonoBehaviour {
         Vector3 newPositon = transform.position + movement;
 
         _rigidbody.MovePosition(newPositon);
+
+        if (horizonalAxis != 0 || verticalAxis != 0)
+        {
+            var direction = new Vector3(horizonalAxis, 0, verticalAxis);
+
+            _rigidbody.rotation = Quaternion.LookRotation(direction);
+        }
     }
     private void JumpHandler()
     {
@@ -85,5 +97,20 @@ public class PlayerController : MonoBehaviour {
         {
             GameManager.Instance.IncreaseLevel();
         }
+    }
+
+    private void LatitudeHandler()
+    {
+        if (gameObject.transform.position.y < - 5)
+            GameManager.Instance.GameOver();
+    }
+
+    private void CameraFollowPlayer()
+    {
+        var cameraPosition = Camera.main.transform.position;
+
+        cameraPosition.z = transform.position.z - CameraDistanceZ;
+
+        Camera.main.transform.position = cameraPosition;
     }
 }
